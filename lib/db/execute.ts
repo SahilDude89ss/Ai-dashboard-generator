@@ -45,6 +45,7 @@ export async function executeQuery(
       rows,
       rowCount: rows.length,
       executionMs,
+      truncated: rows.length >= maxRows,
     };
   } finally {
     await client.close();

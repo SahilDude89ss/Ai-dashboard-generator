@@ -11,11 +11,9 @@ import TableWidget from "./TableWidget";
 
 export const WIDGET_REGISTRY: Record<WidgetType, ComponentType<WidgetProps>> = {
   kpi: KpiWidget,
-  number_trend: KpiWidget,
   timeseries: TimeSeriesWidget,
   bar: BarWidget,
   bar_horizontal: HorizontalBarWidget,
   donut: DonutWidget,
-  pie: DonutWidget,
   table: TableWidget,
 };
