@@ -2,7 +2,7 @@
 import { useState, useCallback } from "react";
 import { Dashboard, DbConnectionConfig, QueryResult } from "@/types";
 import { WidgetCard } from "./WidgetCard";
-import { useDashboardStore } from "@/store/dashboard";
+import { useDashcraftStore } from "@/store/dashcraft";
 import { SqlHighlight } from "@/components/sql/SqlHighlight";
 import { Button } from "@/components/ui/Button";
 import { ChevronDown, ChevronUp, Download } from "lucide-react";
@@ -13,7 +13,7 @@ interface DashboardCanvasProps {
 }
 
 export function DashboardCanvas({ dashboard, connection }: DashboardCanvasProps) {
-  const { updateWidgetSql, setWidgetResult, setWidgetError, updateWidget } = useDashboardStore();
+  const { updateWidgetSql, setWidgetResult, setWidgetError, updateWidget } = useDashcraftStore();
   const [allQueriesOpen, setAllQueriesOpen] = useState(false);
 
   const runQuery = useCallback(

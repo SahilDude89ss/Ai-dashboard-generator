@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Widget, DbConnectionConfig, DbDialect, DbSchema } from "@/types";
-import { WIDGET_REGISTRY } from "@/components/widgets";
+import { WIDGET_REGISTRY } from "@/components/dashcraft/widgets";
 import { SqlInspector } from "@/components/sql/SqlInspector";
 import { Spinner } from "@/components/ui/Spinner";
 import { Code2, RefreshCw } from "lucide-react";

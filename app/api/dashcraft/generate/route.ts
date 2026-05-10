@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { DbSchemaSchema } from "@/lib/schema/types";
 import { z } from "zod";
-import { generateWidgets } from "@/lib/ai/generate-widgets";
+import { generateWidgets } from "@/lib/ai/dashcraft/generate-widgets";
 
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 

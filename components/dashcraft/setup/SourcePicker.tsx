@@ -1,13 +1,13 @@
 "use client";
 import { Database, FileText } from "lucide-react";
-import { useSetupStore } from "@/store/setup";
+import { useDashcraftStore } from "@/store/dashcraft";
 
 interface SourcePickerProps {
   onSelect: (type: "live" | "dump") => void;
 }
 
 export function SourcePicker({ onSelect }: SourcePickerProps) {
-  const { sourceType } = useSetupStore();
+  const { sourceType } = useDashcraftStore();
 
   const options = [
     {

@@ -1,34 +1,72 @@
 import { create } from "zustand";
-import { Dashboard, DbDialect, DbSchema, LogEntry, QueryResult, Widget, WidgetSpec } from "@/types";
+import { Dashboard, DbConnectionConfig, DbDialect, DbSchema, LogEntry, QueryResult, Widget } from "@/types";
 import { v4 as uuidv4 } from "uuid";
 
-interface DashboardStore {
+interface DashcraftStore {
+  // Setup
+  sourceType: "live" | "dump" | null;
+  connectionConfig: DbConnectionConfig | null;
+  schema: DbSchema | null;
+  schemaStatus: "idle" | "loading" | "success" | "error";
+  schemaError: string | null;
+  dialect: DbDialect;
+  prompt: string;
+
+  // Dashboard
   dashboard: Dashboard | null;
   generationStatus: "idle" | "generating" | "success" | "error";
   generationLog: LogEntry[];
+
+  // Setup actions
+  setSourceType: (type: "live" | "dump") => void;
+  setConnectionConfig: (config: DbConnectionConfig) => void;
+  setSqlDump: (content: string) => void;
+  setSchema: (schema: DbSchema) => void;
+  setSchemaStatus: (status: "idle" | "loading" | "success" | "error", error?: string) => void;
+  setDialect: (d: DbDialect) => void;
+  setPrompt: (p: string) => void;
+  resetSetup: () => void;
+
+  // Dashboard actions
   startGeneration: (schema: DbSchema, prompt: string, dialect: DbDialect) => string;
   addLogEntry: (entry: Omit<LogEntry, "id" | "timestamp">) => void;
+  addWidget: (widget: Widget) => void;
   setWidgets: (widgets: Widget[]) => void;
-  addWidget: (spec: WidgetSpec) => void;
   updateWidget: (id: string, updates: Partial<Widget>) => void;
   updateWidgetSql: (id: string, sql: string) => void;
   setWidgetResult: (id: string, result: QueryResult) => void;
   setWidgetError: (id: string, error: string) => void;
   setGenerationStatus: (status: "idle" | "generating" | "success" | "error") => void;
   setDashboard: (dashboard: Dashboard) => void;
-  saveToBrowser: () => void;
-  loadFromBrowser: (id: string) => boolean;
-  listFromBrowser: () => { id: string; title: string; createdAt: Date }[];
+  saveDashboard: () => void;
+  loadDashboard: (id: string) => boolean;
+  listDashboards: () => { id: string; title: string; createdAt: Date }[];
 }
 
-function widgetFromSpec(spec: WidgetSpec): Widget {
-  return { ...spec, status: "idle" };
-}
+export const useDashcraftStore = create<DashcraftStore>((set, get) => ({
+  // Setup state
+  sourceType: null,
+  connectionConfig: null,
+  schema: null,
+  schemaStatus: "idle",
+  schemaError: null,
+  dialect: "postgresql",
+  prompt: "",
 
-export const useDashboardStore = create<DashboardStore>((set, get) => ({
+  // Dashboard state
   dashboard: null,
   generationStatus: "idle",
   generationLog: [],
+
+  setSourceType: (type) => set({ sourceType: type }),
+  setConnectionConfig: (config) => set({ connectionConfig: config }),
+  setSqlDump: (_content) => {},
+  setSchema: (schema) => set({ schema, schemaStatus: "success", schemaError: null }),
+  setSchemaStatus: (status, error) => set({ schemaStatus: status, schemaError: error ?? null }),
+  setDialect: (d) => set({ dialect: d }),
+  setPrompt: (p) => set({ prompt: p }),
+  resetSetup: () =>
+    set({ sourceType: null, connectionConfig: null, schema: null, schemaStatus: "idle", schemaError: null, prompt: "" }),
 
   startGeneration: (schema, prompt, dialect) => {
     const id = uuidv4();
@@ -48,40 +86,47 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
 
   addLogEntry: (entry) => {
     const full: LogEntry = { ...entry, id: uuidv4(), timestamp: new Date() };
-    set((state) => ({ generationLog: [...state.generationLog, full] }));
+    set((s) => ({ generationLog: [...s.generationLog, full] }));
   },
 
-  setWidgets: (widgets) =>
-    set((state) => ({
-      dashboard: state.dashboard
-        ? { ...state.dashboard, widgets, title: state.dashboard.title === "Generating Dashboard…" ? "Dashboard" : state.dashboard.title }
+  addWidget: (widget) =>
+    set((s) => ({
+      dashboard: s.dashboard
+        ? { ...s.dashboard, widgets: [...s.dashboard.widgets, widget] }
         : null,
     })),
 
-  addWidget: (spec) =>
-    set((state) => ({
-      dashboard: state.dashboard
-        ? { ...state.dashboard, widgets: [...state.dashboard.widgets, widgetFromSpec(spec)] }
+  setWidgets: (widgets) =>
+    set((s) => ({
+      dashboard: s.dashboard
+        ? {
+            ...s.dashboard,
+            widgets,
+            title:
+              s.dashboard.title === "Generating Dashboard…"
+                ? "Dashboard"
+                : s.dashboard.title,
+          }
         : null,
     })),
 
   updateWidget: (id, updates) =>
-    set((state) => ({
-      dashboard: state.dashboard
+    set((s) => ({
+      dashboard: s.dashboard
         ? {
-            ...state.dashboard,
-            widgets: state.dashboard.widgets.map((w) => (w.id === id ? { ...w, ...updates } : w)),
+            ...s.dashboard,
+            widgets: s.dashboard.widgets.map((w) => (w.id === id ? { ...w, ...updates } : w)),
             updatedAt: new Date(),
           }
         : null,
     })),
 
   updateWidgetSql: (id, sql) =>
-    set((state) => ({
-      dashboard: state.dashboard
+    set((s) => ({
+      dashboard: s.dashboard
         ? {
-            ...state.dashboard,
-            widgets: state.dashboard.widgets.map((w) =>
+            ...s.dashboard,
+            widgets: s.dashboard.widgets.map((w) =>
               w.id === id ? { ...w, sql, status: "idle" as const } : w
             ),
             updatedAt: new Date(),
@@ -90,11 +135,11 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
     })),
 
   setWidgetResult: (id, result) =>
-    set((state) => ({
-      dashboard: state.dashboard
+    set((s) => ({
+      dashboard: s.dashboard
         ? {
-            ...state.dashboard,
-            widgets: state.dashboard.widgets.map((w) =>
+            ...s.dashboard,
+            widgets: s.dashboard.widgets.map((w) =>
               w.id === id
                 ? { ...w, status: "success" as const, result, lastExecutedAt: new Date(), error: undefined }
                 : w
@@ -104,11 +149,11 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
     })),
 
   setWidgetError: (id, error) =>
-    set((state) => ({
-      dashboard: state.dashboard
+    set((s) => ({
+      dashboard: s.dashboard
         ? {
-            ...state.dashboard,
-            widgets: state.dashboard.widgets.map((w) =>
+            ...s.dashboard,
+            widgets: s.dashboard.widgets.map((w) =>
               w.id === id ? { ...w, status: "error" as const, error } : w
             ),
           }
@@ -119,7 +164,7 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
 
   setDashboard: (dashboard) => set({ dashboard }),
 
-  saveToBrowser: () => {
+  saveDashboard: () => {
     const { dashboard } = get();
     if (!dashboard) return;
     try {
@@ -134,12 +179,11 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
     }
   },
 
-  loadFromBrowser: (id) => {
+  loadDashboard: (id) => {
     try {
       const raw = localStorage.getItem(`dashcraft:${id}`);
       if (!raw) return false;
       const dashboard = JSON.parse(raw) as Dashboard;
-      // Rehydrate dates
       dashboard.createdAt = new Date(dashboard.createdAt);
       dashboard.updatedAt = new Date(dashboard.updatedAt);
       dashboard.schema.connectedAt = new Date(dashboard.schema.connectedAt);
@@ -150,7 +194,7 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
     }
   },
 
-  listFromBrowser: () => {
+  listDashboards: () => {
     try {
       const index: string[] = JSON.parse(localStorage.getItem("dashcraft:index") ?? "[]");
       return index

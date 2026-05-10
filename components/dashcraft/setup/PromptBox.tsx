@@ -1,5 +1,5 @@
 "use client";
-import { useSetupStore } from "@/store/setup";
+import { useDashcraftStore } from "@/store/dashcraft";
 
 const EXAMPLE_PROMPTS = [
   "Show me revenue trends, top customers, and payment breakdown",
@@ -14,7 +14,7 @@ interface PromptBoxProps {
 }
 
 export function PromptBox({ onSubmit, loading = false }: PromptBoxProps) {
-  const { prompt, setPrompt } = useSetupStore();
+  const { prompt, setPrompt } = useDashcraftStore();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

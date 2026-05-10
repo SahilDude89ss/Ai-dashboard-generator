@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useSetupStore } from "@/store/setup";
+import { useDashcraftStore } from "@/store/dashcraft";
 import { DbConnectionConfig, DbDialect } from "@/types";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
@@ -12,7 +12,7 @@ interface LiveDbFormProps {
 }
 
 export function LiveDbForm({ onConnected }: LiveDbFormProps) {
-  const { dialect, setConnectionConfig, setSchema, setSchemaStatus } = useSetupStore();
+  const { dialect, setConnectionConfig, setSchema, setSchemaStatus } = useDashcraftStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [latency, setLatency] = useState<number | null>(null);

@@ -1,16 +1,15 @@
 "use client";
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useSetupStore } from "@/store/setup";
-import { useDashboardStore } from "@/store/dashboard";
-import { StepIndicator } from "@/components/setup/StepIndicator";
-import { SourcePicker } from "@/components/setup/SourcePicker";
-import { LiveDbForm } from "@/components/setup/LiveDbForm";
-import { SqlUploadZone } from "@/components/setup/SqlUploadZone";
-import { DialectPicker } from "@/components/setup/DialectPicker";
-import { SchemaPreview } from "@/components/setup/SchemaPreview";
-import { PromptBox } from "@/components/setup/PromptBox";
-import { GenerationLog } from "@/components/dashboard/GenerationLog";
+import { useDashcraftStore } from "@/store/dashcraft";
+import { StepIndicator } from "@/components/dashcraft/setup/StepIndicator";
+import { SourcePicker } from "@/components/dashcraft/setup/SourcePicker";
+import { LiveDbForm } from "@/components/dashcraft/setup/LiveDbForm";
+import { SqlUploadZone } from "@/components/dashcraft/setup/SqlUploadZone";
+import { DialectPicker } from "@/components/dashcraft/setup/DialectPicker";
+import { SchemaPreview } from "@/components/dashcraft/setup/SchemaPreview";
+import { PromptBox } from "@/components/dashcraft/setup/PromptBox";
+import { GenerationLog } from "@/components/dashcraft/dashboard/GenerationLog";
 import { WidgetSpec, Widget } from "@/types";
 import Link from "next/link";
 
@@ -24,16 +23,16 @@ type GenerationEvent =
 
 export default function NewPage() {
   const router = useRouter();
-  const { sourceType, schema, dialect, prompt, setSourceType, connectionConfig } = useSetupStore();
+  const { sourceType, schema, dialect, prompt, setSourceType, connectionConfig } = useDashcraftStore();
   const {
     startGeneration,
     addLogEntry,
     addWidget,
     setGenerationStatus,
-    saveToBrowser,
+    saveDashboard,
     generationLog,
     generationStatus,
-  } = useDashboardStore();
+  } = useDashcraftStore();
 
   const [step, setStep] = useState(0);
   const [generating, setGenerating] = useState(false);
@@ -55,7 +54,7 @@ export default function NewPage() {
     setStep(2);
 
     try {
-      const res = await fetch("/api/generate", {
+      const res = await fetch("/api/dashcraft/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ schema, prompt, dialect, widgetCount: 7 }),
@@ -103,21 +102,21 @@ export default function NewPage() {
       setGenerationStatus("error");
     } finally {
       setGenerating(false);
-      saveToBrowser();
+      saveDashboard();
 
       // Navigate to dashboard
       setTimeout(() => {
-        router.push(`/dashboard/${dashboardId}`);
+        router.push(`/dashcraft/dashboard/${dashboardId}`);
       }, 800);
     }
-  }, [schema, prompt, dialect, startGeneration, addLogEntry, addWidget, setGenerationStatus, saveToBrowser, router]);
+  }, [schema, prompt, dialect, startGeneration, addLogEntry, addWidget, setGenerationStatus, saveDashboard, router]);
 
   return (
     <div className="min-h-screen bg-bg px-4 py-10">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
-          <Link href="/" className="text-muted2 hover:text-text text-sm transition-colors">
+          <Link href="/dashcraft" className="text-muted2 hover:text-text text-sm transition-colors">
             ← Dashcraft
           </Link>
           <StepIndicator steps={STEPS} current={step} />

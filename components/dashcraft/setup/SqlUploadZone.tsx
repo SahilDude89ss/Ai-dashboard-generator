@@ -1,7 +1,7 @@
 "use client";
 import { useState, useCallback } from "react";
 import { Upload, FileText, AlertCircle } from "lucide-react";
-import { useSetupStore } from "@/store/setup";
+import { useDashcraftStore } from "@/store/dashcraft";
 import { parseSqlDump } from "@/lib/db/parse-sql-dump";
 import { Spinner } from "@/components/ui/Spinner";
 
@@ -10,7 +10,7 @@ interface SqlUploadZoneProps {
 }
 
 export function SqlUploadZone({ onParsed }: SqlUploadZoneProps) {
-  const { dialect, setSchema, setSqlDump, setSchemaStatus } = useSetupStore();
+  const { dialect, setSchema, setSqlDump, setSchemaStatus } = useDashcraftStore();
   const [dragging, setDragging] = useState(false);
   const [parsing, setParsing] = useState(false);
   const [error, setError] = useState<string | null>(null);

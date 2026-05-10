@@ -19,6 +19,7 @@ export const ColumnDefSchema = z.object({
   isPrimaryKey: z.boolean(),
   isForeignKey: z.boolean(),
   referencesTable: z.string().optional(),
+  referencesColumn: z.string().optional(),
 });
 
 export const TableDefSchema = z.object({
@@ -34,16 +35,25 @@ export const DbSchemaSchema = z.object({
   connectedAt: z.coerce.date(),
 });
 
+export const QueryResultSchema = z.object({
+  columns: z.array(z.string()),
+  rows: z.array(z.record(z.unknown())),
+  rowCount: z.number(),
+  executionMs: z.number(),
+  truncated: z.boolean().default(false),
+});
+
 export const WidgetTypeSchema = z.enum([
   "kpi",
   "timeseries",
   "bar",
   "bar_horizontal",
   "donut",
-  "pie",
   "table",
-  "number_trend",
 ]);
+
+export const ValueFormatSchema = z.enum(["currency", "percent", "number", "duration"]);
+export const ColorSchemeSchema = z.enum(["primary", "success", "warning", "danger"]);
 
 export const WidgetSpecSchema = z.object({
   id: z.string().regex(/^[a-z][a-z0-9_]*$/),
@@ -52,15 +62,50 @@ export const WidgetSpecSchema = z.object({
   description: z.string().optional(),
   sql: z.string().min(10),
   gridSpan: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]),
-  gridRow: z.number().optional(),
   columns: z.array(z.string()).optional(),
-  valueFormat: z.enum(["currency", "percent", "number", "duration"]).optional(),
-  colorScheme: z.enum(["primary", "success", "warning", "danger"]).optional(),
+  valueFormat: ValueFormatSchema.optional(),
+  colorScheme: ColorSchemeSchema.optional(),
 });
 
-export const QueryResultSchema = z.object({
-  columns: z.array(z.string()),
-  rows: z.array(z.record(z.unknown())),
-  rowCount: z.number(),
-  executionMs: z.number(),
+// QueryTalk schemas
+export const VizTypeSchema = z.enum(["table", "number", "line", "bar", "bar_h", "donut"]);
+
+export const VizHintSchema = z.object({
+  type: VizTypeSchema,
+  x: z.string().optional(),
+  y: z.string().optional(),
+  label: z.string().optional(),
+  value: z.string().optional(),
+  horizontal: z.boolean().optional(),
+});
+
+export const PlanResultSchema = z.object({
+  intent: z.enum(["query", "clarify", "explain"]),
+  thinking: z.string(),
+  queries: z.array(z.object({
+    id: z.string(),
+    sql: z.string(),
+    title: z.string(),
+    viz: VizHintSchema,
+  })).default([]),
+  clarification: z.object({
+    question: z.string(),
+    options: z.array(z.string()).optional(),
+    context: z.string(),
+  }).optional(),
+  explanation: z.string().optional(),
+});
+
+export const ChatRequestSchema = z.object({
+  userMessage: z.string().min(1).max(2000),
+  context: z.object({
+    recentTurns: z.array(z.any()),
+    activeFilters: z.array(z.any()),
+    lastQuery: z.any().nullable(),
+    clarificationCount: z.number(),
+    usesSonnet: z.boolean(),
+  }),
+  schema: DbSchemaSchema,
+  connection: DbConnectionConfigSchema,
+  dialect: DbDialectSchema,
 });

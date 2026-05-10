@@ -1,6 +1,6 @@
 "use client";
 import { DbDialect } from "@/types";
-import { useSetupStore } from "@/store/setup";
+import { useDashcraftStore } from "@/store/dashcraft";
 
 const DIALECTS: { id: DbDialect; label: string; emoji: string }[] = [
   { id: "postgresql", label: "PostgreSQL", emoji: "🐘" },
@@ -13,7 +13,7 @@ interface DialectPickerProps {
 }
 
 export function DialectPicker({ onChange }: DialectPickerProps) {
-  const { dialect, setDialect } = useSetupStore();
+  const { dialect, setDialect } = useDashcraftStore();
 
   const handleSelect = (d: DbDialect) => {
     setDialect(d);

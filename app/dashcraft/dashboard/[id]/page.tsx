@@ -2,10 +2,10 @@
 import { useEffect, useState, useCallback, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useDashboardStore } from "@/store/dashboard";
-import { DashboardCanvas } from "@/components/dashboard/DashboardCanvas";
-import { QueryBadge } from "@/components/dashboard/QueryBadge";
-import { GenerationLog } from "@/components/dashboard/GenerationLog";
+import { useDashcraftStore } from "@/store/dashcraft";
+import { DashboardCanvas } from "@/components/dashcraft/dashboard/DashboardCanvas";
+import { QueryBadge } from "@/components/dashcraft/dashboard/QueryBadge";
+import { GenerationLog } from "@/components/dashcraft/dashboard/GenerationLog";
 import { Spinner } from "@/components/ui/Spinner";
 import { Tag } from "@/components/ui/Tag";
 import { Widget, QueryResult } from "@/types";
@@ -22,12 +22,12 @@ export default function DashboardPage({ params }: DashboardPageProps) {
     dashboard,
     generationStatus,
     generationLog,
-    loadFromBrowser,
+    loadDashboard,
     updateWidget,
     setWidgetResult,
     setWidgetError,
-    saveToBrowser,
-  } = useDashboardStore();
+    saveDashboard,
+  } = useDashcraftStore();
 
   const [badgeDismissed, setBadgeDismissed] = useState(false);
   const [loadStartMs] = useState(Date.now());
@@ -37,7 +37,7 @@ export default function DashboardPage({ params }: DashboardPageProps) {
   useEffect(() => {
     setHydrated(true);
     if (!dashboard || dashboard.id !== id) {
-      loadFromBrowser(id);
+      loadDashboard(id);
     }
   }, [id]);
 
@@ -67,9 +67,9 @@ export default function DashboardPage({ params }: DashboardPageProps) {
         }
       }
       setLoadedMs(Date.now() - loadStartMs);
-      saveToBrowser();
+      saveDashboard();
     },
-    [updateWidget, setWidgetResult, loadStartMs, saveToBrowser]
+    [updateWidget, setWidgetResult, loadStartMs, saveDashboard]
   );
 
   useEffect(() => {
@@ -108,7 +108,7 @@ export default function DashboardPage({ params }: DashboardPageProps) {
       <header className="sticky top-0 z-30 bg-s1/90 backdrop-blur border-b border-[rgba(255,255,255,0.06)] px-6 py-3">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-2 text-accent font-black text-lg">
+            <Link href="/dashcraft" className="flex items-center gap-2 text-accent font-black text-lg">
               <LayoutDashboard size={20} />
               Dashcraft
             </Link>
@@ -123,7 +123,7 @@ export default function DashboardPage({ params }: DashboardPageProps) {
               <Tag variant="warning">Preview</Tag>
             )}
             <Link
-              href="/new"
+              href="/dashcraft/new"
               className="text-xs text-muted2 hover:text-text transition-colors font-semibold"
             >
               + New Dashboard
